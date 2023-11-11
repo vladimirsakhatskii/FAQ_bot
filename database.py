@@ -41,9 +41,9 @@ async def add_item_member(state):
         db.commit()
 
 
-async def grab_kay():
-    cur.execute('SELECT key_world FROM admin')
-    results1 = cur.fetchall()
+#async def grab_kay():
+#    cur.execute('SELECT key_world FROM admin')
+#    results1 = cur.fetchall()
 
 
 #async def grab_question():
