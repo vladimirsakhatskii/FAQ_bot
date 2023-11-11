@@ -23,6 +23,8 @@ HELP_ADMIN = '''
 /help_admin - команды бота,
 /description - пока не придумал
 Создать вопросы - сделать список, часто задаваемых вопросов
+/list_command - выдаёт список команд из одиночек
+/start - запуск бота
 '''
 
 
@@ -30,18 +32,30 @@ HELP = '''
 /help - команды бота,
 /description - пока не придумал
 Задать вопрос - написать вопрос, который интересует
+/alone - добавляет человека в список одиночек
+/list_command - выдаёт список команд из одиночек
+/start - запуск бота
 '''
 
+
+ALONE_TEAMS = []
+TEAM = []
+ALONE = '''
+У Вас нет команды? Тогда мы Вас соединим с другими одиночками.
+'''
 
 class QUESTION (StatesGroup):
     question = State()
     key_world = State()
     answer = State()
 
+class QUESTION_MEMBER (StatesGroup):
+    question_member = State()
+
 
 @dp.message_handler (commands=['start'])
 async def start_menu(message: types.Message):
-    if (message.from_user.id == int(os.getenv('ADMIN_ID_1'))) or (message.from_user.id == int(os.getenv('ADMIN_ID_2'))):
+    if (message.from_user.id == int(os.getenv('ADMIN_ID_1'))):
         await bot.send_message(
             text=f'{message.from_user.first_name}, добро пожаловать в окно организатора!',
             chat_id=message.from_user.id,
@@ -53,6 +67,23 @@ async def start_menu(message: types.Message):
             chat_id=message.from_user.id,
             reply_markup=kb.kb)
         await message.answer_sticker('CAACAgIAAxkBAAJbgWVPVqh6R2jme1XPYujOay8f5mxwAALyOwACO4Z5St1QvCGWR8SGMwQ')
+
+
+@dp.message_handler (commands=['alone'])
+async def def_alone(message: types.Message):
+    await message.reply(text=ALONE)
+    if len(TEAM) != 3:
+        TEAM.append(message.from_user.username)
+    else:
+        ALONE_TEAMS.append(TEAM)
+
+
+@dp.message_handler (commands=['list_command'])
+async def def_alone2(message: types.Message):
+    print(TEAM)
+    ALONE_TEAMS.append(TEAM)
+    message.answer("Команды для одиночек:")
+    await message.answer(ALONE_TEAMS)
 
 
 @dp.message_handler (commands=['description'])
@@ -96,7 +127,7 @@ async def add_question(message: types.Message,  state: FSMContext):
 async def add_question(message: types.Message,  state: FSMContext):
     async with state.proxy() as data:
         data['answer'] = message.text
-    await db.add_item(state)
+    await db.add_item_admin(state)
     await message.answer(text='Вопрос создан')
     await message.answer_sticker('CAACAgIAAxkBAAJbg2VPVsrAvcqdL1rUZRigLS9ACpeeAALMNgAC9GmASlZMmFp0lZCIMwQ')
     await state.finish()
@@ -104,7 +135,20 @@ async def add_question(message: types.Message,  state: FSMContext):
 
 @dp.message_handler (text = 'Задать вопрос')
 async def def_question(message: types.Message):
-    await message.reply(text='Пока не придумал')
+    await QUESTION_MEMBER.question_member.set()
+    await message.reply(text='Введите вопрос')
+
+
+@dp.message_handler (state = QUESTION_MEMBER.question_member)
+async def def_question(message: types.Message,  state: FSMContext):
+    async with state.proxy() as data:
+        data['question_member'] = message.text
+    await db.add_item_member(state)
+    await message.reply(text='Ждите ответ')
+    await message.answer_sticker('CAACAgIAAxkBAAJbg2VPVsrAvcqdL1rUZRigLS9ACpeeAALMNgAC9GmASlZMmFp0lZCIMwQ')
+#    await db.grab_kay()
+#    print(results)
+    await state.finish()
 
 
 @dp.message_handler()
