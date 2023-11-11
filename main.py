@@ -55,18 +55,20 @@ class QUESTION_MEMBER (StatesGroup):
 
 @dp.message_handler (commands=['start'])
 async def start_menu(message: types.Message):
-    if (message.from_user.id == int(os.getenv('ADMIN_ID_1'))):
+    if message.from_user.id == int(os.getenv('ADMIN_ID_1')):
         await bot.send_message(
             text=f'{message.from_user.first_name}, добро пожаловать в окно организатора!',
             chat_id=message.from_user.id,
             reply_markup=kb.kb_admin)
-        await message.answer_sticker('CAACAgIAAxkBAAJbgWVPVqh6R2jme1XPYujOay8f5mxwAALyOwACO4Z5St1QvCGWR8SGMwQ')
+        await message.answer_sticker('CAACAgIAAxkBAAJbn2VPs2ABl5-2sgWD7qbmvgHwSxbfAALGMwACye14SrqAZc2rgexEMwQ')
+        await message.answer("Подарок: https://t.me/addstickers/Hiroys10")
     else:
         await bot.send_message(
             text=f'{message.from_user.first_name}, добро пожаловать в окно участника!',
             chat_id=message.from_user.id,
             reply_markup=kb.kb)
-        await message.answer_sticker('CAACAgIAAxkBAAJbgWVPVqh6R2jme1XPYujOay8f5mxwAALyOwACO4Z5St1QvCGWR8SGMwQ')
+        await message.answer_sticker('CAACAgIAAxkBAAJbn2VPs2ABl5-2sgWD7qbmvgHwSxbfAALGMwACye14SrqAZc2rgexEMwQ')
+        await message.answer("Подарок: https://t.me/addstickers/Hiroys10")
 
 
 @dp.message_handler (commands=['alone'])
@@ -82,7 +84,7 @@ async def def_alone(message: types.Message):
 async def def_alone2(message: types.Message):
     print(TEAM)
     ALONE_TEAMS.append(TEAM)
-    message.answer("Команды для одиночек:")
+    await message.answer("Команды для одиночек:")
     await message.answer(ALONE_TEAMS)
 
 
@@ -129,7 +131,7 @@ async def add_question(message: types.Message,  state: FSMContext):
         data['answer'] = message.text
     await db.add_item_admin(state)
     await message.answer(text='Вопрос создан')
-    await message.answer_sticker('CAACAgIAAxkBAAJbg2VPVsrAvcqdL1rUZRigLS9ACpeeAALMNgAC9GmASlZMmFp0lZCIMwQ')
+    await message.answer_sticker('CAACAgIAAxkBAAJboWVPs4gFTYNpBrtKs--gNn5uRV01AALVOAACvkh5SlRivMxMxRCyMwQ')
     await state.finish()
 
 
@@ -145,7 +147,7 @@ async def def_question(message: types.Message,  state: FSMContext):
         data['question_member'] = message.text
     await db.add_item_member(state)
     await message.reply(text='Ждите ответ')
-    await message.answer_sticker('CAACAgIAAxkBAAJbg2VPVsrAvcqdL1rUZRigLS9ACpeeAALMNgAC9GmASlZMmFp0lZCIMwQ')
+    await message.answer_sticker('CAACAgIAAxkBAAJbm2VPsbRZNnFF4zlkUwOhNMVk99ccAALNPAACUa6ASrPnlk7T5Xr3MwQ')
 #    await db.grab_kay()
 #    print(results)
     await state.finish()
@@ -154,6 +156,7 @@ async def def_question(message: types.Message,  state: FSMContext):
 @dp.message_handler()
 async def def_error(message: types.Message):
     await message.answer(text='Я тебя не понимаю')
+    await message.answer_sticker('CAACAgIAAxkBAAJbnWVPsfNvdPa7HoeQQmr9NZLxbhdAAAI0PAACb2CBSlicqJQdLg9AMwQ')
 
 
 if __name__ == '__main__':
