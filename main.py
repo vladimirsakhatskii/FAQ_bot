@@ -1,11 +1,81 @@
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from dotenv import load_dotenv
-from app import keyboard as kb
+import keyboard as kb
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher import FSMContext
-from app import database as db
+#import database as db
 import os
+
+
+
+import sqlite3 as sq
+
+
+async def db_start():
+    global db, cur
+    db = sq.connect('tg.db')
+    cur = db.cursor()
+
+    cur.execute('''
+    CREATE TABLE IF NOT EXISTS admin (
+    id INTEGER PRIMARY KEY,
+    question TEXT NOT NULL,
+    key_world TEXT NOT NULL,
+    answer TEXT NOT NULL
+    )
+    ''')
+    db.commit()
+
+    cur.execute('''
+        CREATE TABLE IF NOT EXISTS member (
+        id INTEGER PRIMARY KEY,
+        question_member TEXT NOT NULL
+        )
+        ''')
+    db.commit()
+
+
+async def add_item_admin(state):
+    async with state.proxy() as data:
+        cur.execute(
+                "INSERT INTO admin (question, key_world, answer) VALUES (?, ?, ?)",
+                (data['question'], data['key_world'], data['answer']))
+        db.commit()
+
+
+async def add_item_member(state):
+    async with state.proxy() as data:
+        cur.execute(
+                "INSERT INTO member (question_member) VALUES (?)",
+                (data['question_member'],))
+        db.commit()
+
+
+async def grab_kay():
+    cur.execute('SELECT key_world FROM admin')
+    global results1
+    results1 = cur.fetchone()
+
+
+async def grab_question():
+    cur.execute('SELECT answer FROM admin')
+    global results2
+    results2 = cur.fetchone()
+
+async def grab_mem_quest():
+    cur.execute('SELECT question_member FROM member')
+    global results3
+    results3 = cur.fetchone()
+
+
+
+
+#async def grab_answer():
+#    cur.execute('SELECT answer FROM admin')
+#    results3 = cur.fetchall()
+
+
 
 
 storage = MemoryStorage()
@@ -15,7 +85,7 @@ dp = Dispatcher(bot=bot, storage=storage)
 
 
 async def on_startup(_):
-    await db.db_start()
+    await db_start()
     print('База данных успешно запущена!')
 
 
@@ -129,7 +199,7 @@ async def add_question(message: types.Message,  state: FSMContext):
 async def add_question(message: types.Message,  state: FSMContext):
     async with state.proxy() as data:
         data['answer'] = message.text
-    await db.add_item_admin(state)
+    await add_item_admin(state)
     await message.answer(text='Вопрос создан')
     await message.answer_sticker('CAACAgIAAxkBAAJboWVPs4gFTYNpBrtKs--gNn5uRV01AALVOAACvkh5SlRivMxMxRCyMwQ')
     await state.finish()
@@ -141,15 +211,20 @@ async def def_question(message: types.Message):
     await message.reply(text='Введите вопрос')
 
 
+
 @dp.message_handler (state = QUESTION_MEMBER.question_member)
 async def def_question(message: types.Message,  state: FSMContext):
     async with state.proxy() as data:
         data['question_member'] = message.text
-    await db.add_item_member(state)
+    await add_item_member(state)
     await message.reply(text='Ждите ответ')
     await message.answer_sticker('CAACAgIAAxkBAAJbm2VPsbRZNnFF4zlkUwOhNMVk99ccAALNPAACUa6ASrPnlk7T5Xr3MwQ')
-#    await db.grab_kay()
-#    print(results)
+    await grab_kay()
+    await grab_question()
+    await grab_mem_quest()
+    if results3 == results1:
+        await message.answer(results2)
+    print(results3)
     await state.finish()
 
 
